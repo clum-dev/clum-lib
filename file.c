@@ -12,63 +12,6 @@ void file_lib_version() {
     printf("FileLib\tVersion %f\n", version);
 }
 
-// // Allocs and returns a lines struct
-// Lines* lines_init() {
-
-//     Lines* lines = (Lines*)malloc(sizeof(Lines));
-
-//     lines->lines = (Line*)malloc(sizeof(Line));
-// 	lines->size = 0;
-
-//     return lines;
-// }
-
-// // Frees Lines struct
-// void lines_free(Lines* lines) {
-
-// 	// printf("TEST FREE\tSIZE:%d\n", lines->size);
-
-//     for (int i = 0; i < lines->size; i++) {
-        
-// 		// printf("freeing %s\n", lines->lines[i].text);
-		
-// 		// free(lines->lines[i].text);
-//         // lines->lines[i].text = NULL;
-
-// 		str_free(lines->lines[i].str);
-//     }
-
-//     free(lines->lines);
-// 	lines->lines = NULL;
-
-//     free(lines);
-//     lines = NULL;
-// }
-
-
-// // Prints all parsed line args
-// void print_line_args(Lines lines, int index) {
-
-// 	printf("[LINE]\t(index %d: linenum: %ld)\t", index, lines.lines[index].lineNum);
-
-// 	if (lines.lines[index].str->text[0] == '#') {
-// 		printf("\t[COMMENT]");
-// 	}
-
-// 	printf("\n");
-// }
-
-// // Prints all args of all stored lines
-// void print_all_line_args(Lines lines) {
-// 	printf("\n=====\n");
-// 	printf("Stored lines (size = %ld)\n", lines.size);
-// 	for (int i = 0; i < lines.size; i++) {
-// 		print_line_args(lines, i);
-// 	}
-// 	printf("=====\n");
-// }
-
-
 // Attempts to open a file with a given filename
 FILE* open_file(char* filename, char* mode) {
     
@@ -104,34 +47,6 @@ bool all_spaces(char* line) {
 
 	return false;
 }
-
-// // Parses a line string and stores line args in line struct
-// void store_line(Lines* lines, char* line, int lineNum) {
-    
-//     // printf("line: %s\t(len:%d)\n", line, (int)strlen(line));
-
-// 	// Don't bother storing blank lines
-// 	if ((int)strlen(line) == 0 || all_spaces(line)) {
-// 		return; 
-// 	}
-
-// 	// Realloc for each new line
-// 	lines->lines = (Line*)realloc(lines->lines, sizeof(Line) * ++lines->size);
-// 	if (lines->lines == NULL) {
-// 		fprintf(stderr, "realloc err\n");
-// 		exit(-1);
-// 	}
-	
-// 	// Allocate text string
-//     // lines->lines[lines->size - 1].text = (char*)calloc(strlen(line) + 1, sizeof(char));
-//     // strcpy(lines->lines[lines->size - 1].text, line);
-
-// 	lines->lines[lines->size - 1].str = str_init(line);
-
-// 	// Store lineNum
-// 	lines->lines[lines->size - 1].lineNum = lineNum;
-// }
-
 
 // Gets a stringlist representation of the lines of a file
 StringList* get_file_lines(FILE* file) {
