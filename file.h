@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "lines.h"
+#include "strings.h"
 
 void file_lib_version();
 
