@@ -1,14 +1,16 @@
-/**
- * TODO:
- *  -   like stringlist but for any data type
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "arr.h"
+#include "errors.h"
 
-//
+// Debug for tracking changes made to this library
+void arr_lib_version() {
+    float version = ARR_LIB_VERSION;
+    printf("ArrLib\tVersion %f\n", version);
+}
+
+// Gets the string representation of a vartype
 String* get_type_str(VarType type) {
     switch (type) {
         case T_ANY:
@@ -32,7 +34,7 @@ String* get_type_str(VarType type) {
     return str_init("T_NULL");
 }
 
-//
+// Gets the vartype from a given string
 VarType get_data_type(String* strval) {
     
     if (strval == NULL || strval->text == NULL || strval->len == 0) {
@@ -75,7 +77,8 @@ VarType get_data_type(String* strval) {
 	return type;
 }
 
-//
+// Gets the boolean version of a string
+// ("true" or "false")
 bool get_bool(String* strval) {
 
     if (str_equals_text(strval, "true", true)) {
@@ -89,13 +92,14 @@ bool get_bool(String* strval) {
 
 }
 
-//
+// Initialises a var struct
 Var* var_init(char* text, VarType type) {
 
     Var* var = (Var*)malloc(sizeof(Var));
     var->type = type;
     var->typeStr = get_type_str(var->type);
     var->strval = str_init(text);
+    var->data.s = NULL;
     
     String* temp = str_init(var->strval->text);
     var_set_data(var, temp, false);
@@ -104,7 +108,7 @@ Var* var_init(char* text, VarType type) {
     return var;
 }
 
-//
+// Frees a var struct
 void var_free(Var* var) {
 
     if (var != NULL) {
@@ -125,12 +129,12 @@ void var_free(Var* var) {
     }
 }
 
-//
+// Prints a var struct
 void var_print(Var* var) {
     printf("var: '%s'\ttype: %s\n", var->strval->text, var->typeStr->text);
 }
 
-//
+// Clears all info in a var struct (does not free)
 void var_clear(Var* var) {
     if (var != NULL) {
         if (var->strval != NULL) {
@@ -159,16 +163,23 @@ void var_evaluate(Var* var, String* new) {
     var->typeStr = get_type_str(var->type);
 }
 
-//
+// Sets variable data from a given string (if eval, update var type)
 void var_set_data(Var* var, String* strval, bool eval) {
     
+    // Free current stored string
+    if (var->type == T_STRING) {
+        if (var->data.s != NULL) {
+            str_free(var->data.s);
+        }
+    }
+
+    // Evaluate type
     if (eval) {
         var_evaluate(var, strval);
     }
 
     switch (var->type) {
         case T_ANY:
-            // var_evaluate(var, strval);
             var_set_data(var, strval, true);
             break;
         case T_INT:
@@ -197,30 +208,31 @@ void var_set_data(Var* var, String* strval, bool eval) {
 
 }
 
-//
+// Sets variable data (from char*)
 void var_set_data_text(Var* var, char* text, bool eval) {
     String* temp = str_init(text);
     var_set_data(var, temp, eval);
     str_free(temp);
 }
 
-//
+// Clones a variable struct
 Var* var_clone(Var* var) {
     Var* out = var_init(var->strval->text, var->type);
     return out;
 }
 
 
-
-//
+// Checks array bounds
 bool arr_in_bounds(Arr* arr, size_t index) {
     if (index < 0 || index >= arr->size) {
+        error_msg(E_ERROR, 0, "Array access out of bounds", false);
         return false;
     }
     return true;
 }
 
-//
+
+// Initialises an array struct
 Arr* arr_init(VarType type) {
     
     Arr* arr = (Arr*)malloc(sizeof(Arr));
@@ -232,7 +244,7 @@ Arr* arr_init(VarType type) {
 
 }
 
-//
+// Frees an array struct
 void arr_free(Arr* arr) {
 
     if (arr != NULL) {
@@ -251,15 +263,32 @@ void arr_free(Arr* arr) {
 
 }
 
-//
-void arr_print(Arr* arr) {
-    printf("arr: (size %ld)\n", arr->size);
-    for (size_t i = 0; i < arr->size; i++) {
-        var_print(arr->data[i]);
+// Clears all info in a arr struct (does not free)
+void arr_clear(Arr* arr) {
+    if (arr != NULL) {
+        if (arr->data != NULL) {
+            for (size_t i = 0; i < arr->size; i++) {
+                var_free(arr->data[i]);
+            }
+            free(arr->data);
+            arr->data = NULL;
+        }
+
+        arr->size = 0;
     }
 }
 
-//
+// Prints an array struct
+void arr_print(Arr* arr) {
+    String* temp = get_type_str(arr->type);
+    printf("arr: (%s) (size %ld)\n", temp->text, arr->size);
+    for (size_t i = 0; i < arr->size; i++) {
+        var_print(arr->data[i]);
+    }
+    str_free(temp);
+}
+
+// Adds a var to an array
 void arr_add(Arr* arr, Var* var, bool matchType) {
 
     // Don't add if not correct type
@@ -277,22 +306,22 @@ void arr_add(Arr* arr, Var* var, bool matchType) {
     arr->data[arr->size - 1] = var;
 }
 
-//
-int arr_index(Arr* arr, char* name) {
+// Gets the index of a var in an array (returns -1 if not found)
+int arr_index(Arr* arr, char* name, bool caseSensitive) {
     for (size_t i = 0; i < arr->size; i++) {
-        if (str_equals_text(arr->data[i]->strval, name, true)) {
+        if (str_equals_text(arr->data[i]->strval, name, caseSensitive)) {
             return (int)i;
         }
     }
     return -1;
 }
 
-//
-bool arr_contains(Arr* arr, char* name) {
-    return arr_index(arr, name) != -1;
+// Checks whether a var exists in an array
+bool arr_contains(Arr* arr, char* name, bool caseSensitive) {
+    return arr_index(arr, name, caseSensitive) != -1;
 }
 
-//
+// Removes a var at a given index in an array
 Arr* arr_remove(Arr* arr, size_t index) {
 
     if (!arr_in_bounds(arr, index)) {
@@ -313,16 +342,16 @@ Arr* arr_remove(Arr* arr, size_t index) {
 
 }
 
-//
+// Searches and removes a var in an array
 Arr* arr_pluck(Arr* arr, char* name) {
-    int index = arr_index(arr, name);
+    int index = arr_index(arr, name, true);
     if (index != -1) {
         return arr_remove(arr, (size_t)index);
     }
     return arr;
 }
 
-//
+// Sets the variable data at a given index in an array
 void arr_set(Arr* arr, size_t index, char* data, bool eval) {
     if (!arr_in_bounds(arr, index)) {
         return;
@@ -331,6 +360,34 @@ void arr_set(Arr* arr, size_t index, char* data, bool eval) {
     var_set_data_text(arr->data[index], data, eval);
 }
 
+// Clones an array struct
+Arr* arr_clone(Arr* arr) {
+    Arr* out = arr_init(arr->type);
+
+    for (size_t i = 0; i < arr->size; i++) {
+        arr_add(out, var_clone(arr->data[i]), false);
+    }
+    
+    return out;
+}
+
+// Joins two arrays
+Arr* arr_cat(Arr* a1, Arr* a2) {
+    
+    Arr* out = arr_init(T_ANY);
+
+    for (size_t i = 0; i < a1->size; i++) {
+        arr_add(out, var_clone(a1->data[i]), false);
+    }
+
+    for (size_t i = 0; i < a2->size; i++) {
+        arr_add(out, var_clone(a2->data[i]), false);
+    }
+
+    return out;
+}
+
+// Creates an array from a given string list
 Arr* arr_from_strlist(StringList* strlist) {
 
     Arr* out = arr_init(T_STRING);
@@ -342,29 +399,107 @@ Arr* arr_from_strlist(StringList* strlist) {
     return out;
 }
 
+// Returns a new subarray of the original array
+Arr* arr_slice(Arr* arr, size_t lower, size_t upper) {
 
-// //
-// int main(int argc, char** argv) {
-    
-//     StringList* list = strlist_init();
-//     strlist_add(list, str_init("hello"));
-//     strlist_add(list, str_init("sneed"));
-//     strlist_add(list, str_init("and chuck"));
-//     strlist_print(list);
+    if (!arr_in_bounds(arr, lower) || !arr_in_bounds(arr, lower)) {
+        return arr;
+    }
 
-//     printf("---------------------\n");
-    
-//     Arr* arr = arr_from_strlist(list);    
-//     arr_print(arr);
-//     printf("---------------------\n");
+    Arr* out = arr_init(arr->type);
 
-//     arr = arr_pluck(arr, "sneed");
-//     arr_print(arr);
-//     printf("---------------------\n");
+    for (size_t i = lower; i <= upper; i++) {
+        arr_add(out, var_clone(arr->data[i]), false);
+    }
+
+    return out;
+}
+
+// Reverses the elements of an array
+void arr_reverse(Arr* arr) {
+    Arr* temp = arr_clone(arr);
+    for (size_t i = temp->size; i > 0; i--) {
+        arr_set(arr, arr->size - i, temp->data[i - 1]->strval->text, true);
+    }
+    arr_free(temp);
+}
+
+// Joins an array (by given separators) into a single string
+String* arr_join(Arr* arr, char sep) {
+
+    String* out;
+    for (size_t i = 0; i < arr->size; i++) {
+        if (i == 0) {
+            out = str_init(arr->data[i]->strval->text);
+        } else {
+            str_concat_text(out, arr->data[i]->strval->text);
+        }
+        
+        if (sep != '\0' && i != arr->size - 1) {
+            str_concat_char(out, sep);
+        }
+    }
+
+    return out;
+}
 
 
-//     strlist_free(list);
-//     arr_free(arr);
+// Adds int value to array
+void arr_add_int(Arr* arr, int i) {
+    char temp[INT_STR_SIZE];
+    sprintf(temp, "%d", i);
+    arr_add(arr, var_init(temp, T_INT), false);
+}
 
-//     return 0;
-// }
+// Adds float value to array
+void arr_add_float(Arr* arr, float f) {
+    char temp[INT_STR_SIZE];
+    sprintf(temp, "%f", f);
+    arr_add(arr, var_init(temp, T_FLOAT), false);
+}
+
+// Adds strings value to array
+void arr_add_string(Arr* arr, String* str) {
+    arr_add(arr, var_init(str->text, T_STRING), false);
+    str_free(str);
+}
+
+// Adds char value to array
+void arr_add_char(Arr* arr, char c) {
+    String* temp = str_init("");
+    str_concat_char(temp, c);
+    arr_add(arr, var_init(temp->text, T_CHAR), false);
+    str_free(temp);
+}
+
+// Adds bool value to array
+void arr_add_bool(Arr* arr, bool b) {
+    String* temp;
+    if (b) {
+        temp = str_init("true");
+    } else {
+        temp = str_init("false");
+    }
+    arr_add(arr, var_init(temp->text, T_BOOL), false);
+    str_free(temp);
+}
+
+
+int main() {
+
+    Arr* temp = arr_init(T_ANY);
+
+    for (int i = 0; i < 5; i++) {
+        arr_add_int(temp, i);
+    }
+
+    printf("temp:\n");
+    arr_print(temp);
+    line_sep('-', 30);
+
+    String* str = arr_join(temp, ',');
+    printf("str: %s\n", str->text);
+    str_free(str);
+
+    arr_free(temp);
+}

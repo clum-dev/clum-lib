@@ -1,3 +1,5 @@
 .vscode/settings.json
-*.o
 _make
+Makefile
+*.o
+*.sh
