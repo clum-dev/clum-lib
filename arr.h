@@ -59,7 +59,7 @@ Var* var_init(char* text, VarType type);
 void var_free(Var* var);
 void var_print(Var* var);
 void var_clear(Var* var);
-void var_evaluate(Var* var, String* new);
+void var_evaluate(Var* var, String* newVar);
 void var_set_data(Var* var, String* strval, bool eval);
 void var_set_data_text(Var* var, char* text, bool eval);
 Var* var_clone(Var* var);

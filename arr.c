@@ -152,11 +152,11 @@ void var_clear(Var* var) {
 }
 
 // Stores and evaluates the new string val
-void var_evaluate(Var* var, String* new) {
+void var_evaluate(Var* var, String* newVar) {
     // str_clear(var->strval);
-    // str_concat_text(var->strval, new->text);
+    // str_concat_text(var->strval, newVar->text);
     str_free(var->strval);
-    var->strval = str_init(new->text);
+    var->strval = str_init(newVar->text);
         
     var->type = get_data_type(var->strval);
     str_free(var->typeStr);
@@ -446,7 +446,7 @@ String* arr_join(Arr* arr, char sep) {
 
 // Adds int value to array
 void arr_add_int(Arr* arr, int i) {
-    char temp[INT_STR_SIZE];
+    char temp[INT_STR_SIZE];    // TODO redo with dynamic input???
     sprintf(temp, "%d", i);
     arr_add(arr, var_init(temp, T_INT), false);
 }
@@ -458,7 +458,7 @@ void arr_add_float(Arr* arr, float f) {
     arr_add(arr, var_init(temp, T_FLOAT), false);
 }
 
-// Adds strings value to array
+// Adds string value to array
 void arr_add_string(Arr* arr, String* str) {
     arr_add(arr, var_init(str->text, T_STRING), false);
     str_free(str);
@@ -484,22 +484,3 @@ void arr_add_bool(Arr* arr, bool b) {
     str_free(temp);
 }
 
-
-int main() {
-
-    Arr* temp = arr_init(T_ANY);
-
-    for (int i = 0; i < 5; i++) {
-        arr_add_int(temp, i);
-    }
-
-    printf("temp:\n");
-    arr_print(temp);
-    line_sep('-', 30);
-
-    String* str = arr_join(temp, ',');
-    printf("str: %s\n", str->text);
-    str_free(str);
-
-    arr_free(temp);
-}
