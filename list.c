@@ -4,7 +4,7 @@
 #include "list.h"
 #include "errors.h"
 
-//
+// Initialises a listnode struct
 ListNode* listnode_init(Node* data) {
 
     ListNode* node = (ListNode*)malloc(sizeof(ListNode));
@@ -15,7 +15,7 @@ ListNode* listnode_init(Node* data) {
     return node;
 }
 
-//
+// Frees a listnode struct
 void listnode_free(ListNode* node) {
 
     if (node != NULL) {
@@ -30,7 +30,7 @@ void listnode_free(ListNode* node) {
     }
 }
 
-//
+// Prints a listnode struct
 void listnode_print(ListNode* node, bool showNeighbours) {
 
     if (node != NULL) {
@@ -55,7 +55,17 @@ void listnode_print(ListNode* node, bool showNeighbours) {
 
 }
 
-//
+// Clones a listnode struct
+ListNode* listnode_clone(ListNode* node) {
+
+    ListNode* new = listnode_init(node->data);
+    new->prev = node->prev;
+    new->next = node->next;
+
+    return new;
+}
+
+// Initialises a list struct
 List* list_init() {
 
     List* list = (List*)malloc(sizeof(List));
@@ -65,7 +75,7 @@ List* list_init() {
     return list;
 }
 
-// 
+// Frees a list struct
 void list_free(List* list) {
     
     if (list != NULL) {
@@ -88,19 +98,37 @@ void list_free(List* list) {
     }
 }
 
-//
-void list_print(List* list) {
+// Prints a list struct
+void list_print(List* list, bool sep) {
     
     printf("List: (size = %ld)\n", list->size);
 
     ListNode* head = list->head;
     while (head != NULL) {
         node_print(head->data);
+        if (sep) {
+            printf("\n");
+        }
         head = head->next;
     }
 }
 
-//
+// Prints only the data in a list struct
+void list_print_data(List* list, bool sep) {
+    
+    printf("List: (size = %ld)\n", list->size);
+
+    ListNode* head = list->head;
+    while (head != NULL) {
+        node_print_data(head->data);
+        if (sep) {
+            printf("\n");
+        }
+        head = head->next;
+    }
+}
+
+// Adds a node to a list struct
 void list_add(List* list, Node* data) {
 
     ListNode* head = list->head;
@@ -124,30 +152,110 @@ void list_add(List* list, Node* data) {
 
 }
 
+// Removes a node at a given index from a list
+void list_remove(List* list, size_t index) {
 
-//
-int main() {
+    if (index > list->size) {
+        return;
+    }
 
-    List* list = list_init();
-    // list_print(list);
-    // line_sep('-', 30);
+    ListNode* head = list->head;
+    int i = 0;
+    while (head != NULL) {
+        if (i == index) {
 
-    list_add(list, node_init(NODE_VAR, var_init("1234", T_STRING)));
+            // remove head
+            if (head->prev == NULL) {
+                list->head = head->next;
+                if (list->head != NULL) {
+                    list->head->prev = NULL;
+                }
+            
+            // otherwise redirect pointers
+            } else {
+                head->prev->next = head->next;
+            }
+            
+            // otherwise redirect pointers
+            if (head->next != NULL) {
+                head->next->prev = head->prev;
+            }
 
-    
-    Arr* arr = arr_init(T_ANY);
-    arr_add_string(arr, str_init("sneed"));
-    arr_add_int(arr, 123);
-    
-    list_add(list, node_init(NODE_ARR, arr));
+            listnode_free(head);
+            list->size--;
+            break;
+        }
 
-    printf("%s\n", list->head->next->data->nodedata.arr->data[0]->strval->text);
-
-
-    // list_print(list);
-    line_sep('-', 30);
-
-    list_free(list);
-
-    return 0;
+        head = head->next;
+        i++;
+    }
 }
+
+// Gets the node at a given index from a list
+ListNode* list_get(List* list, size_t index) {
+
+    ListNode* head = list->head;
+    size_t i = 0;
+    while (head != NULL) {
+        if (i == index) {
+            return head;
+        }
+        head = head->next;
+        i++;
+    }
+    
+    return NULL;
+}
+
+// Gets the index of a node with a given name from a list
+// (returns -1 if not found)
+int list_index(List* list, char* name) {
+    ListNode* head = list->head;
+    int i = 0;
+    while (head != NULL) {
+        if (str_equals_text(head->data->nodedata.var->strval, name, true)) {
+            return i;        
+        }
+        head = head->next;
+        i++;
+    }
+    return -1;
+}
+
+// Gets the node from a list matching the given name
+// (returns null if not found)
+ListNode* list_find(List* list, char* name) {
+
+    ListNode* head = list->head;
+    while (head != NULL) {
+        if (str_equals_text(head->data->nodedata.var->strval, name, true)) {
+            return head;        
+        }
+        head = head->next;
+    }
+    
+    return NULL;
+}
+
+// Searches and removes a node in a list
+void list_pluck(List* list, char* name) {
+    ListNode* head = list->head;
+    size_t i = 0;
+    while (head != NULL) {
+        if (str_equals_text(head->data->nodedata.var->strval, name, true)) {
+            list_remove(list, i);
+            break;
+        }
+        head = head->next;
+        i++;
+    }
+}
+
+// CHecks whether a list contains a node with the given name
+bool list_contains(List* list, char* name) {
+    if (list_index(list, name) == -1) {
+        return false;
+    }
+    return true;
+}
+

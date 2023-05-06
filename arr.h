@@ -58,6 +58,7 @@ typedef struct Arr {
 Var* var_init(char* text, VarType type);
 void var_free(Var* var);
 void var_print(Var* var);
+void var_print_data(Var* var);
 void var_clear(Var* var);
 void var_evaluate(Var* var, String* newVar);
 void var_set_data(Var* var, String* strval, bool eval);
@@ -71,6 +72,7 @@ Arr* arr_init(VarType type);
 void arr_free(Arr* arr);
 void arr_clear(Arr* arr);
 void arr_print(Arr* arr);
+void arr_print_data(Arr* arr);
 void arr_add(Arr* arr, Var* var, bool matchType);
 int arr_index(Arr* arr, char* name, bool caseSensitive);
 bool arr_contains(Arr* arr, char* name, bool caseSensitive);

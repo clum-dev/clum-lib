@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "errors.h"
+#include "file.h"
 
 //
 const char* ERROR_LVL[5] = {
@@ -37,3 +39,30 @@ void error_msg(ErrorLvl lvl, int code, char* msg, bool quit) {
         exit(code);
     }
 }
+
+// Prompts a user with a message and records their input as a string
+String* prompt(char* msg) {
+    printf("%s\n> ", msg);
+
+    String* temp = dynamic_read(stdin, true);
+    fflush(stdin);
+
+    return temp;
+}
+
+// Prompts a user with a messange, records their input, 
+// and checks against the given accept string
+// Returns true if it matches
+bool accept_prompt(char* msg, char* accept) {
+
+    bool out = false;
+    String* temp = prompt(msg);
+
+    if (!strcmp(temp->text, accept)) {
+        out = true;
+    }
+    str_free(temp);
+
+    return out;
+}
+

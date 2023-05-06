@@ -10,10 +10,10 @@ Node* node_init(NodeType type, void* nodedata) {
     node->type = type;
     
     if (type == NODE_VAR) {
-        node->nodedata.var = (Var*)nodedata;
+        node->nodedata.var = var_clone((Var*)nodedata);
 
     } else if (type == NODE_ARR) {
-        node->nodedata.arr = (Arr*)nodedata;
+        node->nodedata.arr = arr_clone((Arr*)nodedata);
     }
     
     return node;
@@ -49,6 +49,17 @@ void node_print(Node* node) {
         var_print(node->nodedata.var);
     } else if (node->type == NODE_ARR) {
         arr_print(node->nodedata.arr);
+    }
+}
+
+//
+void node_print_data(Node* node) {
+    if (node->type == NODE_NULL) {
+        printf("(null node)\n");
+    } else if (node->type == NODE_VAR) {
+        var_print_data(node->nodedata.var);
+    } else if (node->type == NODE_ARR) {
+        arr_print_data(node->nodedata.arr);
     }
 }
 

@@ -33,7 +33,7 @@ typedef struct Node {
 Node* node_init(NodeType type, void* data);
 void node_free(Node* node);
 void node_print(Node* node);
-
+void node_print_data(Node* node);
 
 
 

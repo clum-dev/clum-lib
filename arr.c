@@ -134,6 +134,11 @@ void var_print(Var* var) {
     printf("var: '%s'\ttype: %s\n", var->strval->text, var->typeStr->text);
 }
 
+// Prints only the data in a var struct
+void var_print_data(Var* var) {
+    printf("%s\n", var->strval->text);
+}
+
 // Clears all info in a var struct (does not free)
 void var_clear(Var* var) {
     if (var != NULL) {
@@ -284,6 +289,16 @@ void arr_print(Arr* arr) {
     printf("arr: (%s) (size %ld)\n", temp->text, arr->size);
     for (size_t i = 0; i < arr->size; i++) {
         var_print(arr->data[i]);
+    }
+    str_free(temp);
+}
+
+// Prints only the data in an array struct
+void arr_print_data(Arr* arr) {
+    String* temp = get_type_str(arr->type);
+    printf("arr: (%s) (size %ld)\n", temp->text, arr->size);
+    for (size_t i = 0; i < arr->size; i++) {
+        var_print_data(arr->data[i]);
     }
     str_free(temp);
 }
