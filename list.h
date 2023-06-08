@@ -13,12 +13,12 @@ typedef struct ListNode {
 } ListNode;
 
 //
-typedef struct List {
+struct List {
 
     ListNode* head;
     size_t size;
 
-} List;
+};
 
 
 ListNode* listnode_init(Node* data);
@@ -35,6 +35,19 @@ int list_index(List* list, char* name);
 ListNode* list_find(List* list, char* name);
 void list_pluck(List* list, char* name);
 bool list_contains(List* list, char* name);
+List* list_clone(List* list);
+
+void list_add_var(List* list, Var* var);
+void list_add_arr(List* list, Arr* arr);
+void list_add_list(List* list, List* add);
+
+void list_add_int(List* list, int i);
+void list_add_float(List* list, float f);
+void list_add_string(List* list, String* str);
+void list_add_text(List* list, char* txt);
+void list_add_char(List* list, char c);
+void list_add_bool(List* list, bool b);
+
 
 
 #endif

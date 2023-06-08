@@ -58,7 +58,7 @@ typedef struct Arr {
 Var* var_init(char* text, VarType type);
 void var_free(Var* var);
 void var_print(Var* var);
-void var_print_data(Var* var);
+void var_print_data(Var* var, bool newline);
 void var_clear(Var* var);
 void var_evaluate(Var* var, String* newVar);
 void var_set_data(Var* var, String* strval, bool eval);
@@ -86,9 +86,17 @@ Arr* arr_slice(Arr* arr, size_t lower, size_t upper);
 void arr_reverse(Arr* arr);
 String* arr_join(Arr* arr, char sep);
 
+Var* var_from_int(int i);
+Var* var_from_float(float f);
+Var* var_from_string(String* str);
+Var* var_from_text(char* txt);
+Var* var_from_char(char c);
+Var* var_from_bool(bool b);
+
 void arr_add_int(Arr* arr, int i);
 void arr_add_float(Arr* arr, float f);
 void arr_add_string(Arr* arr, String* str);
+void arr_add_text(Arr* arr, char* txt);
 void arr_add_char(Arr* arr, char c);
 void arr_add_bool(Arr* arr, bool b);
 

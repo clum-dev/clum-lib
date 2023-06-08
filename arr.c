@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "arr.h"
-#include "errors.h"
+#include "util.h"
 
 // Debug for tracking changes made to this library
 void arr_lib_version() {
@@ -135,8 +135,11 @@ void var_print(Var* var) {
 }
 
 // Prints only the data in a var struct
-void var_print_data(Var* var) {
-    printf("%s\n", var->strval->text);
+void var_print_data(Var* var, bool newline) {
+    printf("%s", var->strval->text);
+    if (newline) {
+        printf("\n");
+    }
 }
 
 // Clears all info in a var struct (does not free)
@@ -158,8 +161,6 @@ void var_clear(Var* var) {
 
 // Stores and evaluates the new string val
 void var_evaluate(Var* var, String* newVar) {
-    // str_clear(var->strval);
-    // str_concat_text(var->strval, newVar->text);
     str_free(var->strval);
     var->strval = str_init(newVar->text);
         
@@ -296,10 +297,14 @@ void arr_print(Arr* arr) {
 // Prints only the data in an array struct
 void arr_print_data(Arr* arr) {
     String* temp = get_type_str(arr->type);
-    printf("arr: (%s) (size %ld)\n", temp->text, arr->size);
+    printf("[");
     for (size_t i = 0; i < arr->size; i++) {
-        var_print_data(arr->data[i]);
+        var_print_data(arr->data[i], false);
+        if (i != arr->size - 1) {
+            printf(", ");
+        }
     }
+    printf("]");
     str_free(temp);
 }
 
@@ -459,43 +464,85 @@ String* arr_join(Arr* arr, char sep) {
 }
 
 
-// Adds int value to array
-void arr_add_int(Arr* arr, int i) {
+// Initialises a var from an int
+Var* var_from_int(int i) {
     char temp[INT_STR_SIZE];    // TODO redo with dynamic input???
     sprintf(temp, "%d", i);
-    arr_add(arr, var_init(temp, T_INT), false);
+    return var_init(temp, T_INT);
 }
 
-// Adds float value to array
-void arr_add_float(Arr* arr, float f) {
+// Initialises a var from a float
+Var* var_from_float(float f) {
     char temp[INT_STR_SIZE];
     sprintf(temp, "%f", f);
-    arr_add(arr, var_init(temp, T_FLOAT), false);
+    return var_init(temp, T_FLOAT);
 }
 
-// Adds string value to array
-void arr_add_string(Arr* arr, String* str) {
-    arr_add(arr, var_init(str->text, T_STRING), false);
+// Initialises a var from a string
+Var* var_from_string(String* str) {
+    Var* out = var_init(str->text, T_STRING);
     str_free(str);
+    return out;
 }
 
-// Adds char value to array
-void arr_add_char(Arr* arr, char c) {
+// Initialises a var from text
+Var* var_from_text(char* txt) {
+    String* temp = str_init(txt);
+    Var* out = var_from_string(temp);
+    return out;
+}
+
+// Initialises a var from a char
+Var* var_from_char(char c) {
     String* temp = str_init("");
     str_concat_char(temp, c);
-    arr_add(arr, var_init(temp->text, T_CHAR), false);
+    Var* out = var_init(temp->text, T_CHAR);
     str_free(temp);
+    return out;
 }
 
-// Adds bool value to array
-void arr_add_bool(Arr* arr, bool b) {
+// Initialises a var from a bool
+Var* var_from_bool(bool b) {
     String* temp;
     if (b) {
         temp = str_init("true");
     } else {
         temp = str_init("false");
     }
-    arr_add(arr, var_init(temp->text, T_BOOL), false);
+    Var* out = var_init(temp->text, T_BOOL);
     str_free(temp);
+    return out;
+}
+
+
+// Adds int value to array
+void arr_add_int(Arr* arr, int i) {
+    arr_add(arr, var_from_int(i), false);
+}
+
+// Adds float value to array
+void arr_add_float(Arr* arr, float f) {
+    arr_add(arr, var_from_float(f), false);
+}
+
+// Adds string value to array
+void arr_add_string(Arr* arr, String* str) {
+    arr_add(arr, var_from_string(str), false);
+}
+
+// Adds text value to array (as string)
+void arr_add_text(Arr* arr, char* txt) {
+    String* temp = str_init(txt);
+    arr_add_string(arr, temp);
+}
+
+// Adds char value to array
+void arr_add_char(Arr* arr, char c) {
+    arr_add(arr, var_from_char(c), false);
+}
+
+// Adds bool value to array
+void arr_add_bool(Arr* arr, bool b) {
+    arr_add(arr, var_from_bool(b), false);
 }
 

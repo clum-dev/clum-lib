@@ -17,6 +17,8 @@ typedef enum ErrorLvl {
 
 void unimp(char* msg);
 void line_sep(char c, size_t amount);
+void debug_indent(size_t tabs);
+void debug_newline(bool show);
 void error_msg(ErrorLvl lvl, int code, char* msg, bool quit);
 
 String* prompt(char* msg);

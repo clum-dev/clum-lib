@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "list.h"
-#include "errors.h"
+#include "util.h"
 
 // Initialises a listnode struct
 ListNode* listnode_init(Node* data) {
@@ -85,7 +85,6 @@ void list_free(List* list) {
             
             ListNode* temp = head;
             head = head->next;
-            
             if (temp != NULL) {
                 listnode_free(temp);
             }
@@ -106,9 +105,7 @@ void list_print(List* list, bool sep) {
     ListNode* head = list->head;
     while (head != NULL) {
         node_print(head->data);
-        if (sep) {
-            printf("\n");
-        }
+        debug_newline(sep);
         head = head->next;
     }
 }
@@ -116,23 +113,37 @@ void list_print(List* list, bool sep) {
 // Prints only the data in a list struct
 void list_print_data(List* list, bool sep) {
     
-    printf("List: (size = %ld)\n", list->size);
+    printf("{");
+    debug_newline(sep);
 
     ListNode* head = list->head;
+    size_t index = 0;
     while (head != NULL) {
-        node_print_data(head->data);
         if (sep) {
-            printf("\n");
+            debug_indent(1);
         }
+        node_print_data(head->data, false);
+        if (index != list->size - 1) {
+            printf(", ");
+        }
+        debug_newline(sep);
+
+        
         head = head->next;
+        index++;
     }
+    
+    printf("}");
+    debug_newline(sep);
+
 }
 
 // Adds a node to a list struct
 void list_add(List* list, Node* data) {
 
     ListNode* head = list->head;
-    ListNode* node = listnode_init(data);
+    ListNode* node = NULL;
+    node = listnode_init(data);
     list->size++;
 
     // add head
@@ -251,11 +262,73 @@ void list_pluck(List* list, char* name) {
     }
 }
 
-// CHecks whether a list contains a node with the given name
+// Checks whether a list contains a node with the given name
 bool list_contains(List* list, char* name) {
     if (list_index(list, name) == -1) {
         return false;
     }
     return true;
+}
+
+// Clones a list struct
+List* list_clone(List* list) {
+
+    List* out = list_init();
+    ListNode* head = list->head;
+    while (head != NULL) {
+        // list_add(out, head->data);
+        list_add(out, node_clone(head->data));
+        head = head->next;
+    }
+
+    return out;
+}
+
+
+// Adds a var to a list
+void list_add_var(List* list, Var* var) {
+    list_add(list, node_init(NODE_VAR, var, false));
+}
+
+// Adds an arr to a list
+void list_add_arr(List* list, Arr* arr) {
+    list_add(list, node_init(NODE_ARR, arr, false));
+}
+
+// Adds a list to a list
+void list_add_list(List* list, List* add) {
+    list_add(list, node_init(NODE_LIST, add, false));
+}
+
+
+// Adds an int var to a list
+void list_add_int(List* list, int i) {
+    list_add(list, node_init(NODE_VAR, var_from_int(i), false));
+}
+
+// Adds a float var to a list
+void list_add_float(List* list, float f) {
+    list_add(list, node_init(NODE_VAR, var_from_float(f), false));
+}
+
+// Adds a string var to a list
+void list_add_string(List* list, String* str) {
+    list_add(list, node_init(NODE_VAR, var_from_string(str), false));
+}
+
+// Adds a string var (from text) to a list
+void list_add_text(List* list, char* txt) {
+    String* temp = str_init(txt);
+    list_add_string(list, temp);
+}
+
+// Adds a char var to a list
+void list_add_char(List* list, char c) {
+    list_add(list, node_init(NODE_VAR, var_from_char(c), false));
+}
+
+// Adds a bool var to a list
+void list_add_bool(List* list, bool b) {
+    list_add(list, node_init(NODE_VAR, var_from_bool(b), false));
 }
 

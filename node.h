@@ -3,6 +3,7 @@
 
 #include "arr.h"
 
+typedef struct List List;
 
 //
 typedef enum NodeType {
@@ -10,6 +11,7 @@ typedef enum NodeType {
     NODE_NULL,
     NODE_VAR,
     NODE_ARR,
+    NODE_LIST,
 
 } NodeType;
 
@@ -18,6 +20,7 @@ typedef union NodeData {
     
     Var* var;
     Arr* arr;
+    List* list;
     
 } NodeData;
 
@@ -30,11 +33,12 @@ typedef struct Node {
 } Node;
 
 
-Node* node_init(NodeType type, void* data);
+Node* node_init(NodeType type, void* data, bool copy);
 void node_free(Node* node);
 void node_print(Node* node);
-void node_print_data(Node* node);
+void node_print_data(Node* node, bool newline);
+Node* node_clone(Node* node);
 
-
+String* node_get_type(Node* node);
 
 #endif

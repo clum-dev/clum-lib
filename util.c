@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "errors.h"
+#include "util.h"
 #include "file.h"
 
 //
@@ -26,6 +26,20 @@ void line_sep(char c, size_t amount) {
         printf("%c", c);
     }
     printf("\n");
+}
+
+// Debug - indent by tab
+void debug_indent(size_t tabs) {
+    for (size_t i = 0; i < tabs; i++) {
+        printf("\t");
+    }
+}
+
+// Debug - optional newline
+void debug_newline(bool show) {
+    if (show) {
+        printf("\n");
+    }
 }
 
 //
