@@ -1,7 +1,6 @@
 #ifndef __ARR_H__
 #define __ARR_H__
 
-#define ARR_LIB_VERSION 0.1
 #define INT_STR_SIZE 12
 
 #include <stdlib.h>
@@ -64,6 +63,9 @@ void var_evaluate(Var* var, String* newVar);
 void var_set_data(Var* var, String* strval, bool eval);
 void var_set_data_text(Var* var, char* text, bool eval);
 Var* var_clone(Var* var);
+
+Var* var_sum(Var* a, Var* b);
+void var_cast(Var* var, VarType type);
 
 String* get_type_str(VarType type);
 VarType get_data_type(String* strval);

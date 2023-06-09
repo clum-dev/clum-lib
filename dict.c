@@ -135,8 +135,8 @@ void dict_print(Dict* dict, bool showNulls) {
 // Adds a new entry to a dict (returns false if key already exists)
 bool dict_add(Dict* dict, String* key, Node* data, bool linearProbe) {
 
-    // Don't add if dict filled
-    if (dict->size + 1 >= dict->max) {
+    // Don't add if dict filled or if key already exists
+    if (dict->size + 1 >= dict->max || dict_contains(dict, key)) {
         str_free(key);
         node_free(data);
         return false;
@@ -218,3 +218,47 @@ DictNode* dict_get(Dict* dict, String* key) {
     return out;
 }
 
+// Gets the value for a given key (returns NULL if key cannot be found)
+Node* dict_get_value(Dict* dict, String* key) {
+    Node* out = NULL;
+    if (dict_contains(dict, key)) {
+        out = dict->entries[gen_hash(dict->max, key)]->data;
+    }
+    return out;
+}
+
+// Gets the list of all keys in a dict
+List* dict_get_keys(Dict* dict) {
+    List* out = list_init();
+    for (size_t i = 0; i < dict->max; i++) {
+        if (dict->entries[i] != NULL) {
+            list_add_string(out, str_init(dict->entries[i]->key->text));
+        }
+    }
+
+    return out;
+}
+
+
+
+// int main() {
+
+//     Dict* dict = dict_init(4);
+//     dict_add(dict, str_init("test"), node_init(NODE_VAR, var_from_int(123), false), true);
+//     dict_add(dict, str_init("sneed"), node_init(NODE_NULL, NULL, false), true);
+//     dict_add(dict, str_init("sneed"), node_init(NODE_LIST, list_init(), false), true);
+//     dict_add(dict, str_init("bloke"), node_init(NODE_VAR, var_from_text("sneeder feeder"), false), true);
+
+//     dict_print(dict, false);
+
+//     line_sep('-', 30);
+//     List* temp = dict_get_keys(dict);
+//     printf("keys of dict:\n");
+//     list_print_data(temp, false);
+//     printf("\n");
+//     list_free(temp);
+
+//     dict_free(dict);
+
+//     return 0;
+// }

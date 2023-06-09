@@ -332,3 +332,77 @@ void list_add_bool(List* list, bool b) {
     list_add(list, node_init(NODE_VAR, var_from_bool(b), false));
 }
 
+
+// Gets the correct value to be summed
+Var* get_sum_val(ListNode* head, bool strict) {
+    if (head->data->type == NODE_VAR) {
+        return var_clone(head->data->nodedata.var);
+    } else if (head->data->type == NODE_LIST) {
+        return list_sum(head->data->nodedata.list, strict);;
+    } else if (head->data->type == NODE_ARR) {
+        unimp("get sum val - arr TODO");
+    }
+
+    return NULL;
+}
+
+// Summation of list elements
+Var* list_sum(List* input, bool strict) {
+
+    Var* total = var_init(NULL, T_NULL);
+
+    ListNode* head = input->head;
+    VarType type = -1;
+    bool typeConsistent = true;
+
+    // Check list is all vars of same type
+    while (head != NULL) {
+        
+        // Don't add together sub lists/arrs
+        if (head->data->type != NODE_VAR) {
+            // typeConsistent = false;
+            // break;
+        } else if (strict) {
+            if (type == -1) {
+                type = head->data->nodedata.var->type;
+            } else if (type != head->data->nodedata.var->type) {
+                typeConsistent = false;
+                break;
+            }
+        }
+        head = head->next;
+    }
+
+    // Concatenate or add
+    if (typeConsistent) {
+                
+        ListNode* head = input->head;
+        int index = 0;
+
+        while (head != NULL) {
+            // Set initial total to first value in list
+            if (index == 0) {
+                Var* sumval = get_sum_val(head, strict);
+                // var_set_data_text(total, sumval->strval->text, true);
+                var_set_data(total, sumval->strval, true);
+                var_free(sumval);
+
+            // Add total with next value in list
+            } else {
+                Var* sumval = get_sum_val(head, strict);
+                Var* add = var_sum(total, sumval);
+                var_set_data(total, add->strval, true);
+                var_free(add);
+                var_free(sumval);
+            }
+
+            head = head->next;
+            index++;
+        }
+    
+    } else {
+        error_msg(E_ERROR, -1, "Invalid sum types - todo", false);
+    }
+
+    return total;
+}

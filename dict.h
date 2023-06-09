@@ -23,5 +23,16 @@ typedef struct Dict {
 
 } Dict;
 
+Dict* dict_init(size_t max);
+void dict_free(Dict* dict);
+void dict_print(Dict* dict, bool showNulls);
+
+bool dict_add(Dict* dict, String* key, Node* data, bool linearProbe);
+bool dict_contains(Dict* dict, String* key);
+bool dict_contains_text(Dict* dict, char* key);
+bool dict_remove(Dict* dict, String* key);
+
+DictNode* dict_get(Dict* dict, String* key);
+
 
 #endif

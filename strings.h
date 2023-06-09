@@ -4,8 +4,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define STR_LIB_VERSION 0.1
-
 typedef struct String {
     
     char* text;
@@ -22,8 +20,6 @@ typedef struct StringList {
 } StringList;
 
 
-void str_lib_version();
-
 String* str_init(char* text);
 void str_free(String* str);
 void str_print(String* str, bool newline);
@@ -31,6 +27,7 @@ void str_set(String* str, char* text);
 void str_clear(String* str);
 void str_concat_text(String* str, char* text);
 void str_concat_char(String* str, char chr);
+void str_concat_str(String* str, String* text);
 String* str_to_lower(String* str);
 String* str_to_upper(String* str);
 bool str_equals(String* str1, String* str2, bool caseSensitive);

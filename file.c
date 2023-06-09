@@ -6,11 +6,6 @@
 
 #include "file.h"
 
-// Debug for tracking changes made to this library
-void file_lib_version() {
-    float version = STR_LIB_VERSION;
-    printf("FileLib\tVersion %f\n", version);
-}
 
 // Attempts to open a file with a given filename
 FILE* open_file(char* filename, char* mode) {
@@ -74,27 +69,21 @@ String* dynamic_read(FILE* file, bool singleLine) {
 	char ch;
 	size_t index = 0;
 
-    while ((ch = fgetc(file)) != EOF) {
-		
-		// printf("%lu:\t%c\t(len: %lu)\n", index, ch, str->len);
-
+	while ((ch = fgetc(file)) != EOF) {
 		if (ch == '\n' && singleLine) {
 			break;
 		}
 
 		if (index == 0) {
 			char temp[1];
-    		temp[0] = ch;
+			temp[0] = ch;
 			str_set(str, temp);			
-
 		} else {
 			str_concat_char(str, ch);
 		}
 
 		index++;
-    }
+	}
 
-	// printf("string: %s\tsize: %lu\n", str->text, str->len);
-
-    return str;
+	return str;
 }

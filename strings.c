@@ -5,12 +5,6 @@
 
 #include "strings.h"
 
-// Debug for tracking changes made to this library
-void str_lib_version() {
-    float version = STR_LIB_VERSION;
-    printf("StrLib:\tVersion %f\n", version);
-}
-
 
 // Initialises a string struct (sets to given text val if given)
 String* str_init(char* text) {
@@ -82,7 +76,7 @@ void str_clear(String* str) {
     str_set(str, NULL);
 }
 
-// Concatenates a string with another string
+// Concatenates a string with text
 void str_concat_text(String* str, char* text) {
 
     if (text != NULL) {
@@ -110,6 +104,11 @@ void str_concat_char(String* str, char chr) {
     char temp[1];
     temp[0] = chr;
     str_concat_text(str, temp);
+}
+
+// Concatenates a string with another string
+void str_concat_str(String* str, String* text) {
+    str_concat_text(str, text->text);
 }
 
 // Converts string to lowercase -> creates a new string

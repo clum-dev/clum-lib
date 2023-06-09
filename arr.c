@@ -4,11 +4,6 @@
 #include "arr.h"
 #include "util.h"
 
-// Debug for tracking changes made to this library
-void arr_lib_version() {
-    float version = ARR_LIB_VERSION;
-    printf("ArrLib\tVersion %f\n", version);
-}
 
 // Gets the string representation of a vartype
 String* get_type_str(VarType type) {
@@ -34,7 +29,7 @@ String* get_type_str(VarType type) {
     return str_init("T_NULL");
 }
 
-// Gets the vartype from a given string
+// Infers the vartype from a given string
 VarType get_data_type(String* strval) {
     
     if (strval == NULL || strval->text == NULL || strval->len == 0) {
@@ -86,10 +81,13 @@ bool get_bool(String* strval) {
     } else if (str_equals_text(strval, "false", true)) {
         return false;
     } else {
-        fprintf(stderr, "Error: invalid bool conversion: '%s'\n", strval->text);
-        exit(1);
+        String* msg = str_init("Invalid bool conversion from: '");
+        str_concat_str(msg, strval);
+        str_concat_char(msg, '\'');
+        error_msg(E_ERROR, -1, msg->text, true);
     }
 
+    return false;
 }
 
 // Initialises a var struct
@@ -227,6 +225,103 @@ Var* var_clone(Var* var) {
     return out;
 }
 
+//
+Var* var_sum(Var* a, Var* b) {
+
+    Var* out = var_init(NULL, T_STRING);
+    VarType aType = a->type;
+    VarType bType = b->type;
+
+    // If one var is a string, concatenate
+    if (aType == T_STRING || bType == T_STRING) {
+        String* cat = str_init(a->strval->text);
+        str_concat_text(cat, b->strval->text);
+        var_set_data(out, cat, true);
+        str_free(cat);
+    
+    // Add ints
+    } else if (aType == T_INT && bType == T_INT) {
+        Var* temp = var_from_int(a->data.i + b->data.i);
+        var_set_data(out, temp->strval, true);
+        var_free(temp);
+
+    // Add floats
+    } else if (aType == T_FLOAT && bType == T_FLOAT) {
+        Var* temp = var_from_float(a->data.f + b->data.f);
+        var_set_data(out, temp->strval, true);
+        var_free(temp);
+
+    // Add chars
+    } else if (aType == T_CHAR && bType == T_CHAR) {
+        Var* temp = var_from_char(a->data.c + b->data.c);
+        var_set_data(out, temp->strval, true);
+        var_free(temp);
+
+    // Invalid add op
+    } else {
+        error_msg(E_ERROR, -1, "Invalid add opearation - todo", false);
+    }
+    
+    return out;
+}
+
+//
+void var_cast(Var* var, VarType type) {
+
+    Var* temp = NULL;
+
+    switch (type) {
+        case T_ANY: // if cast to any, keep same type
+            break;
+        case T_INT:
+            if (var->type == T_BOOL) {
+                if (var->data.b) {
+                    var->data.i = 1;
+                } else {
+                    var->data.i = 0;
+                }
+            } else {
+                var->data.i = atoi(var->strval->text);
+            }
+            temp = var_from_int(var->data.i);
+            str_set(var->strval, temp->strval->text);
+            break;
+        case T_FLOAT:
+            var->data.f = atof(var->strval->text);
+            temp = var_from_float(var->data.f);
+            str_set(var->strval, temp->strval->text);
+            break;
+        case T_STRING:
+            var->data.s = str_init(var->strval->text);
+            temp = var_from_string(str_init(var->data.s->text));
+            str_set(var->strval, temp->strval->text);
+            break;
+        case T_CHAR:
+            var->data.c = var->strval->text[0];
+            temp = var_from_char(var->data.c);
+            str_set(var->strval, temp->strval->text);
+            break;
+        case T_BOOL:
+            var->data.b = get_bool(var->strval);
+            temp = var_from_bool(var->data.b);
+            str_set(var->strval, temp->strval->text);
+            break;
+        case T_NULL:
+            var->data.n = NULL;
+            str_set(var->strval, "TESTING TODO CHECK");
+            break;
+
+        default:
+            fprintf(stderr, "Error: unhandled type %d\n", var->type);
+    }
+
+    var->type = type;
+    str_free(var->typeStr);
+    var->typeStr = get_type_str(var->type);
+
+    var_free(temp); 
+}
+
 
 // Checks array bounds
 bool arr_in_bounds(Arr* arr, size_t index) {
@@ -313,6 +408,16 @@ void arr_add(Arr* arr, Var* var, bool matchType) {
 
     // Don't add if not correct type
     if (arr->type != T_ANY && matchType && arr->type != var->type) {
+        String* msg = str_init("Cannot add var of type '");
+        str_concat_str(msg, var->typeStr);
+        str_concat_text(msg, "' to arr of type '");
+        String* arrType = get_type_str(arr->type);
+        str_concat_str(msg, arrType);
+        str_concat_char(msg, '\'');
+        error_msg(E_WARN, -1, msg->text, false);
+        str_free(arrType);
+        str_free(msg);
+        
         var_free(var);
         return;
     }

@@ -1,6 +1,7 @@
 #ifndef __LIST_H__
 #define __LIST_H__
 
+#include "arr.h"
 #include "node.h"
 
 //
@@ -48,6 +49,7 @@ void list_add_text(List* list, char* txt);
 void list_add_char(List* list, char c);
 void list_add_bool(List* list, bool b);
 
+Var* list_sum(List* input, bool strict);
 
 
 #endif
