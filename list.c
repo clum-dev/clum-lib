@@ -284,6 +284,35 @@ List* list_clone(List* list) {
     return out;
 }
 
+// TODO
+List* list_zip(List* a, List* b) {
+
+    List* out = list_init();
+    
+    for (size_t i = 0; i < a->size; i++) {
+        List* temp = list_init();
+        ListNode* aItem = list_get(a, i);
+        ListNode* bItem = list_get(b, i);
+
+        if (aItem != NULL) {
+            list_add(temp, node_clone(aItem->data));
+        }
+        if (bItem != NULL) {
+            list_add(temp, node_clone(bItem->data));
+        }
+
+        if (temp->size == 2) {
+            list_add_list(out, list_clone(temp));
+        }
+        list_free(temp);
+    }
+
+    return out;
+}
+
+
+
+
 
 // Adds a var to a list
 void list_add_var(List* list, Var* var) {

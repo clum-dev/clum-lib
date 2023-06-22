@@ -98,10 +98,13 @@ Var* var_init(char* text, VarType type) {
     var->typeStr = get_type_str(var->type);
     var->strval = str_init(text);
     var->data.s = NULL;
+    // var->data.s = str_init(NULL);
     
-    String* temp = str_init(var->strval->text);
-    var_set_data(var, temp, false);
-    str_free(temp);
+    // String* strval = str_init(var->strval->text);
+    var_set_data(var, var->strval, false);
+    // if (var->type != T_STRING) {
+    //     str_free(strval);
+    // }
 
     return var;
 }
@@ -117,9 +120,10 @@ void var_free(Var* var) {
         if (var->typeStr != NULL) {
             str_free(var->typeStr);
         }
-
+      
         if (var->type == T_STRING && var->data.s != NULL) {
             str_free(var->data.s);
+            var->data.s = NULL;
         }
 
         free(var);
@@ -152,8 +156,53 @@ void var_clear(Var* var) {
         }
 
         if (var->type == T_STRING && var->data.s != NULL) {
+            printf(">>>freeing data string: %s\n", var->data.s->text);
             str_free(var->data.s);
         }   
+    }
+}
+
+// Set a var from another var
+void var_set_var(Var* dest, Var* src) {
+    
+    if (dest->type == T_STRING) {
+        if (dest->data.s != NULL) {
+            str_free(dest->data.s);
+            dest->data.s = NULL;
+        }
+    }
+    
+    str_set(dest->strval, src->strval->text);
+    str_set(dest->typeStr, src->typeStr->text);
+    dest->type = src->type;
+
+    // Copy union data
+    switch (src->type) {
+        case T_INT:
+            dest->data.i = src->data.i;
+            break;
+        case T_FLOAT:
+            dest->data.f = src->data.f;
+            break;
+        case T_STRING:
+            dest->data.s = str_init(src->data.s->text);
+            if (src->data.s != NULL) {
+                str_free(src->data.s);
+                src->data.s = NULL;
+            }
+            break;
+        case T_CHAR:
+            dest->data.c = src->data.c;
+            break;
+        case T_BOOL:
+            dest->data.b = src->data.c;
+            break;
+        case T_NULL:
+            dest->data.n = src->data.n;
+            break;
+
+        default:
+            fprintf(stderr, "Error: unhandled type %d\n", src->type);
     }
 }
 
@@ -174,6 +223,7 @@ void var_set_data(Var* var, String* strval, bool eval) {
     if (var->type == T_STRING) {
         if (var->data.s != NULL) {
             str_free(var->data.s);
+            var->data.s = NULL;
         }
     }
 
@@ -193,6 +243,7 @@ void var_set_data(Var* var, String* strval, bool eval) {
             var->data.f = atof(strval->text);
             break;
         case T_STRING:
+            // var->data.s = strval;
             var->data.s = str_init(strval->text);
             break;
         case T_CHAR:
@@ -267,59 +318,58 @@ Var* var_sum(Var* a, Var* b) {
 
 //
 void var_cast(Var* var, VarType type) {
+    if (var->type == type) {
+        return;
+    }
 
-    Var* temp = NULL;
+    Var* out = NULL;
+    int temp_i = 0;
+    bool temp_b = false; 
 
     switch (type) {
-        case T_ANY: // if cast to any, keep same type
+        case T_ANY:
             break;
         case T_INT:
-            if (var->type == T_BOOL) {
-                if (var->data.b) {
-                    var->data.i = 1;
-                } else {
-                    var->data.i = 0;
-                }
+            if (var->type == T_BOOL && var->data.b) {
+                temp_i = 1;
             } else {
-                var->data.i = atoi(var->strval->text);
+                temp_i = atoi(var->strval->text);
             }
-            temp = var_from_int(var->data.i);
-            str_set(var->strval, temp->strval->text);
+            out = var_from_int(temp_i);
             break;
         case T_FLOAT:
-            var->data.f = atof(var->strval->text);
-            temp = var_from_float(var->data.f);
-            str_set(var->strval, temp->strval->text);
+            out = var_from_float(atof(var->strval->text));
             break;
         case T_STRING:
-            var->data.s = str_init(var->strval->text);
-            temp = var_from_string(str_init(var->data.s->text));
-            str_set(var->strval, temp->strval->text);
+            out = var_from_string(str_init(var->strval->text));
             break;
         case T_CHAR:
-            var->data.c = var->strval->text[0];
-            temp = var_from_char(var->data.c);
-            str_set(var->strval, temp->strval->text);
+            out = var_from_char(var->strval->text[0]);
             break;
         case T_BOOL:
-            var->data.b = get_bool(var->strval);
-            temp = var_from_bool(var->data.b);
-            str_set(var->strval, temp->strval->text);
+            if (var->type == T_INT) {
+                temp_b = (var->data.i != 0);
+            } else {
+                temp_b = get_bool(var->strval);
+            }
+            out = var_from_bool(temp_b);
             break;
         case T_NULL:
-            var->data.n = NULL;
-            str_set(var->strval, "TESTING TODO CHECK");
+            out = var_init(NULL, T_NULL);
+            printf("TESTING NULL CAST\n");
             break;
 
         default:
-            fprintf(stderr, "Error: unhandled type %d\n", var->type);
+            fprintf(stderr, "Error: unhandled type: %d\n", type);
     }
 
-    var->type = type;
-    str_free(var->typeStr);
-    var->typeStr = get_type_str(var->type);
+    if (out == NULL) {
+        var_init(NULL, T_NULL);
+    }
 
-    var_free(temp); 
+    var_set_var(var, out);
+    var_free(out);
+    out = NULL;
 }
 
 
@@ -587,6 +637,7 @@ Var* var_from_float(float f) {
 Var* var_from_string(String* str) {
     Var* out = var_init(str->text, T_STRING);
     str_free(str);
+    str = NULL;
     return out;
 }
 

@@ -17,7 +17,7 @@
 unsigned int crc32b(const char* str) {
     unsigned int byte, crc, mask;
     int i = 0, j;
-    crc = 0xFEED5EED;
+    crc = 0xFFFFFFFF;
 
     while (str[i] != 0) {
         byte = str[i];

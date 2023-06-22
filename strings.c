@@ -17,10 +17,10 @@ String* str_init(char* text) {
     }
     str->len = len;
 
+    str->text = (char*)calloc(len + 1, sizeof(char));
     if (len == 0) {
-        str->text = NULL;
+        strcpy(str->text, "\0");
     } else {
-        str->text = calloc(len + 1, sizeof(char));
         strcpy(str->text, text);
     }
 
@@ -57,12 +57,23 @@ void str_print(String* str, bool newline) {
 // Sets the string value in a given string struct
 void str_set(String* str, char* text) {
 
+    if (str == NULL) {
+        str = str_init(text);
+        return;
+    } 
+
     int len = 0;
     if (text != NULL) {
         len = strlen(text);
     }
     str->len = len;
-    str->text = (char*)realloc(str->text, sizeof(char) * (len + 1));
+    
+    // Alloc if null, otherwise realloc to new text size
+    if (str->text == NULL) {
+        str->text = (char*)malloc(sizeof(char) * (len + 1));
+    } else {
+        str->text = (char*)realloc(str->text, sizeof(char) * (len + 1));
+    }
 
     if (len == 0) {
         strcpy(str->text, "\0");
@@ -165,6 +176,28 @@ bool str_equals_text(String* str1, char* str2, bool caseSensitive) {
     str_free(temp);
 
     return out;
+}
+
+//
+String* str_clone(String* str) {
+    return str_init(str->text);
+}
+
+// Reverses a string (in place)
+void str_reverse(String* str) {
+    String* out = str_init("");
+    for (size_t i = str->len; i > 0; i--) {
+        str_concat_char(out, str->text[i - 1]);
+    }
+    str_set(str, out->text);
+    str_free(out);
+}
+
+//
+void str_slice(String* str, int start, int end) {
+
+    // TODO substring slice (where start/end index can be negative)
+    
 }
 
 

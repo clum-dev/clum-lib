@@ -42,7 +42,7 @@ void debug_newline(bool show) {
     }
 }
 
-//
+// Multi-level error message (can exit with with provided code)
 void error_msg(ErrorLvl lvl, int code, char* msg, bool quit) {
     fprintf(stderr, "[%s]\t\t%s\t", ERROR_LVL[lvl], msg);
     if (lvl == E_ERROR || lvl == E_FATAL) {

@@ -37,6 +37,7 @@ ListNode* list_find(List* list, char* name);
 void list_pluck(List* list, char* name);
 bool list_contains(List* list, char* name);
 List* list_clone(List* list);
+List* list_zip(List* a, List* b);
 
 void list_add_var(List* list, Var* var);
 void list_add_arr(List* list, Arr* arr);

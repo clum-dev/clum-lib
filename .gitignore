@@ -2,5 +2,6 @@
 _make
 Makefile
 pipe.*
+clum-lib.h
 *.o
 *.sh

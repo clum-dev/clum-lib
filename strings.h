@@ -32,6 +32,8 @@ String* str_to_lower(String* str);
 String* str_to_upper(String* str);
 bool str_equals(String* str1, String* str2, bool caseSensitive);
 bool str_equals_text(String* str1, char* str2, bool caseSensitive);
+void str_reverse(String* str);
+
 
 StringList* strlist_init();
 void strlist_free(StringList* list);
