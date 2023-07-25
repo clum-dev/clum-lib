@@ -59,12 +59,18 @@ void var_free(Var* var);
 void var_print(Var* var);
 void var_print_data(Var* var, bool newline);
 void var_clear(Var* var);
+void var_set_var(Var* dest, Var* src);
 void var_evaluate(Var* var, String* newVar);
 void var_set_data(Var* var, String* strval, bool eval);
 void var_set_data_text(Var* var, char* text, bool eval);
 Var* var_clone(Var* var);
 
-Var* var_sum(Var* a, Var* b);
+Var* var_add(Var* a, Var* b);
+Var* var_sub(Var* a, Var* b);
+Var* var_mult(Var* a, Var* b);
+Var* var_div(Var* a, Var* b);
+
+
 void var_cast(Var* var, VarType type);
 
 String* get_type_str(VarType type);

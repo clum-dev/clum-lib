@@ -3,6 +3,7 @@
 
 #include "node.h"
 #include "list.h"
+#include "dict.h"
 
 //
 Node* node_init(NodeType type, void* nodedata, bool copy) {
@@ -30,6 +31,13 @@ Node* node_init(NodeType type, void* nodedata, bool copy) {
         } else {
             node->nodedata.list = (List*)nodedata;
         }
+
+    } else if (type == NODE_HASHNODE) {
+        if (copy) {
+            node->nodedata.hashnode = hashnode_clone((HashNode*)nodedata);
+        } else {
+            node->nodedata.hashnode = (HashNode*)nodedata;
+        }
     }
     
     return node;
@@ -54,6 +62,11 @@ void node_free(Node* node) {
             list_free(node->nodedata.list);
             node->nodedata.list = NULL;
             node->type = NODE_NULL;
+        
+        } else if (node->type == NODE_HASHNODE) {
+            hashnode_free(node->nodedata.hashnode);
+            node->nodedata.hashnode = NULL;
+            node->type = NODE_NULL;
         }
 
         free(node);
@@ -72,6 +85,8 @@ void node_print(Node* node) {
         arr_print(node->nodedata.arr);
     } else if (node->type == NODE_LIST) {
         list_print(node->nodedata.list, false);
+    } else if (node->type == NODE_HASHNODE) {
+        hashnode_print(node->nodedata.hashnode);
     }
 }
 
@@ -91,7 +106,10 @@ void node_print_data(Node* node, bool newline) {
         }
     } else if (node->type == NODE_LIST) {
         list_print_data(node->nodedata.list, newline);
+    } else if (node->type == NODE_HASHNODE) {
+        hashnode_print(node->nodedata.hashnode);
     }
+
 }
 
 //
@@ -122,6 +140,7 @@ String* node_get_type(Node* node) {
             return str_init("NODE_ARR");
         case NODE_LIST:
             return str_init("NODE_LIST");
+
         default:
             return str_init(NULL);
     }

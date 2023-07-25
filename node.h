@@ -4,6 +4,7 @@
 #include "arr.h"
 
 typedef struct List List;
+typedef struct HashNode HashNode;
 
 //
 typedef enum NodeType {
@@ -12,6 +13,7 @@ typedef enum NodeType {
     NODE_VAR,
     NODE_ARR,
     NODE_LIST,
+    NODE_HASHNODE,
 
 } NodeType;
 
@@ -21,6 +23,7 @@ typedef union NodeData {
     Var* var;
     Arr* arr;
     List* list;
+    HashNode* hashnode;
     
 } NodeData;
 

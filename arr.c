@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "arr.h"
 #include "util.h"
@@ -133,7 +134,7 @@ void var_free(Var* var) {
 
 // Prints a var struct
 void var_print(Var* var) {
-    printf("var: '%s'\ttype: %s\n", var->strval->text, var->typeStr->text);
+    printf("Var: '%s'\ttype: %s\n", var->strval->text, var->typeStr->text);
 }
 
 // Prints only the data in a var struct
@@ -243,7 +244,6 @@ void var_set_data(Var* var, String* strval, bool eval) {
             var->data.f = atof(strval->text);
             break;
         case T_STRING:
-            // var->data.s = strval;
             var->data.s = str_init(strval->text);
             break;
         case T_CHAR:
@@ -276,8 +276,12 @@ Var* var_clone(Var* var) {
     return out;
 }
 
-//
-Var* var_sum(Var* a, Var* b) {
+
+// MOVE THESE OPERATIONS TO THEIR OWN FILE??
+
+
+// Variable summation: a + b
+Var* var_add(Var* a, Var* b) {
 
     Var* out = var_init(NULL, T_STRING);
     VarType aType = a->type;
@@ -287,36 +291,216 @@ Var* var_sum(Var* a, Var* b) {
     if (aType == T_STRING || bType == T_STRING) {
         String* cat = str_init(a->strval->text);
         str_concat_text(cat, b->strval->text);
-        var_set_data(out, cat, true);
+        var_set_data(out, cat, false);
         str_free(cat);
     
-    // Add ints
+    // Sum ints
     } else if (aType == T_INT && bType == T_INT) {
         Var* temp = var_from_int(a->data.i + b->data.i);
         var_set_data(out, temp->strval, true);
         var_free(temp);
 
-    // Add floats
+    // Sum floats
     } else if (aType == T_FLOAT && bType == T_FLOAT) {
         Var* temp = var_from_float(a->data.f + b->data.f);
         var_set_data(out, temp->strval, true);
         var_free(temp);
 
-    // Add chars
+    // Sum chars
     } else if (aType == T_CHAR && bType == T_CHAR) {
         Var* temp = var_from_char(a->data.c + b->data.c);
         var_set_data(out, temp->strval, true);
         var_free(temp);
 
-    // Invalid add op
+    // Invalid sum op
     } else {
-        error_msg(E_ERROR, -1, "Invalid add opearation - todo", false);
+        error_msg(E_ERROR, -1, "Invalid summation opearation - todo", false);
     }
     
     return out;
 }
 
-//
+// Variable subtraction: a - b
+Var* var_sub(Var* a, Var* b) {
+
+    Var* out = var_init(NULL, T_STRING);
+    VarType aType = a->type;
+    VarType bType = b->type;
+
+    // If a and b are strings, subtract (whole) substrings of b from a
+    if (aType == T_STRING && bType == T_STRING) {
+        // String* found = str_init("");
+        // for (size_t i = 0; i < a->data.s->len; i++) {
+        //     // If out of bounds, append rest of chars
+        //     if (i + b->data.s->len <= a->data.s->len) {
+        //         String* slice = str_slice(a->data.s, i, i + b->data.s->len - 1);
+
+        //         // If matched, move index forward (skip substring)
+        //         if (str_equals(slice, b->data.s, false)) {
+        //             i += b->data.s->len;
+        //         }
+        //         str_free(slice);
+        //     }
+        //     str_concat_char(found, a->data.s->text[i]);
+        // }
+
+        // (moved above code to str_reap)
+        // TODO TEST THIS
+        String* found = str_clone(a->data.s);
+        str_reap(found, b->data.s);
+
+        Var* temp = var_from_string(found);
+        var_set_data(out, temp->strval, true);
+        var_free(temp);
+
+    // If a is string and b is int, shorten a by b chars
+    } else if (aType == T_STRING && bType == T_INT) {
+        String* slice = str_slice(a->data.s, 0, -b->data.i);
+        Var* temp = var_from_string(slice);
+        var_set_data(out, temp->strval, true);
+        var_free(temp);
+
+    // Sub ints
+    } else if (aType == T_INT && bType == T_INT) {
+        Var* temp = var_from_int(a->data.i - b->data.i);
+        var_set_data(out, temp->strval, true);
+        var_free(temp);
+
+    // Sub floats  
+    } else if (aType == T_FLOAT && bType == T_FLOAT) {
+        Var* temp = var_from_float(a->data.f - b->data.f);
+        var_set_data(out, temp->strval, true);
+        var_free(temp);
+
+    // Sub chars
+    } else if (aType == T_CHAR && bType == T_CHAR) {
+        Var* temp = var_from_char(a->data.c - b->data.c);
+        var_set_data(out, temp->strval, true);
+        var_free(temp);
+
+    // Invalid sub op
+    } else {
+        error_msg(E_ERROR, -1, "Invalid subtraction operation - todo", false);
+    }
+
+    return out;
+}
+
+// Variable multiplication: a * b
+Var* var_mult(Var* a, Var* b) {
+    
+    Var* out = var_init(NULL, T_STRING);
+    VarType aType = a->type;
+    VarType bType = b->type;
+
+    // If a is string and b is int, repeat a (b times)
+    if (aType == T_STRING && bType == T_INT) {
+        if (b->data.i <= 0) {
+            error_msg(E_ERROR, -1, "Invalid string multiplication - todo", false);
+        } else {
+            String* temp = str_init("");
+            for (size_t i = 0; i < b->data.i; i++) {
+                str_concat_str(temp, a->data.s);
+            }
+            var_set_data(out, temp, true);
+            str_free(temp);
+        }
+
+    // Mult ints
+    } else if (aType == T_INT && bType == T_INT) {
+        Var* temp = var_from_int(a->data.i * b->data.i);
+        var_set_data(out, temp->strval, true);
+        var_free(temp);
+    
+    // Mult floats
+    } else if (aType == T_FLOAT && bType == T_FLOAT) {
+        Var* temp = var_from_float(a->data.f * b->data.f);
+        var_set_data(out, temp->strval, true);
+        var_free(temp);
+
+    // Mult float/int combo
+    } else if ((aType == T_INT || aType == T_FLOAT) && (bType == T_INT || bType == T_FLOAT)) {
+        Var* temp;
+        if (a->type == T_INT && b->type == T_FLOAT) {
+            temp = var_from_float(a->data.i * b->data.f);
+        } else if (a->type == T_FLOAT && bType == T_INT) {
+            temp = var_from_float(a->data.f * b->data.i);
+        }
+        var_set_data(out, temp->strval, true);
+        var_free(temp);     
+
+    // Invalid mult op
+    } else {
+        error_msg(E_ERROR, -1, "Invalid multilication operation - todo", false);
+    }
+
+    return out;
+}
+
+// Variable division: a / b
+Var* var_div(Var* a, Var* b) {
+
+    Var* out = var_init(NULL, T_STRING);
+    VarType aType = a->type;
+    VarType bType = b->type;
+
+    // Div ints
+    if (aType == T_INT && bType == T_INT) {
+        Var* temp = var_from_int(a->data.i / b->data.i);
+        var_set_data(out, temp->strval, true);
+        var_free(temp);
+    
+    // Div floats
+    } else if (aType == T_FLOAT && bType == T_FLOAT) {
+        Var* temp = var_from_float(a->data.f / b->data.f);
+        var_set_data(out, temp->strval, true);
+        var_free(temp);
+
+    // Div float/int combo
+    } else if ((aType == T_INT || aType == T_FLOAT) && (bType == T_INT || bType == T_FLOAT)) {
+        Var* temp;
+        if (a->type == T_INT && bType == T_FLOAT) {
+            temp = var_from_float(a->data.i / b->data.f);
+        } else if (a->type == T_FLOAT && bType == T_INT) {
+            temp = var_from_float(a->data.f / b->data.f);
+        }
+        var_set_data(out, temp->strval, true);
+        var_free(temp);
+
+    // Invlid div op
+    } else {
+        error_msg(E_ERROR, -1, "Invalid division operation - todo", false);
+    }
+
+    return out;
+}
+
+// Variable modulo: a % b
+Var* var_mod(Var* a, Var* b) {
+
+    Var* out = var_init(NULL, T_INT);
+    VarType aType = a->type;
+    VarType bType = b->type;
+
+    // Modulo only on ints
+    if (aType == T_INT && bType == T_INT) {
+        Var* temp = var_from_int(a->data.i % b->data.i);
+        var_set_data(out, temp->strval, true);
+        var_free(temp);
+    } else {
+        error_msg(E_ERROR, -1, "Invalid modulo operation - todo", false);
+    }
+
+    return out;
+}
+
+// Variable power: a ** b
+Var* var_pow(Var* a, Var* b) {
+    unimp("var power op");
+    return NULL;
+}
+
+// Cast a var to a given type
 void var_cast(Var* var, VarType type) {
     if (var->type == type) {
         return;
@@ -432,7 +616,7 @@ void arr_clear(Arr* arr) {
 // Prints an array struct
 void arr_print(Arr* arr) {
     String* temp = get_type_str(arr->type);
-    printf("arr: (%s) (size %ld)\n", temp->text, arr->size);
+    printf("Arr: (%s) (size %ld)\n", temp->text, arr->size);
     for (size_t i = 0; i < arr->size; i++) {
         var_print(arr->data[i]);
     }
@@ -602,7 +786,7 @@ void arr_reverse(Arr* arr) {
 // Joins an array (by given separators) into a single string
 String* arr_join(Arr* arr, char sep) {
 
-    String* out;
+    String* out = str_init("");
     for (size_t i = 0; i < arr->size; i++) {
         if (i == 0) {
             out = str_init(arr->data[i]->strval->text);

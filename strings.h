@@ -32,8 +32,12 @@ String* str_to_lower(String* str);
 String* str_to_upper(String* str);
 bool str_equals(String* str1, String* str2, bool caseSensitive);
 bool str_equals_text(String* str1, char* str2, bool caseSensitive);
+String* str_clone(String* str);
 void str_reverse(String* str);
-
+String* str_slice(String* str, int start, int end);
+void str_trim(String* str, int chars);
+void str_reap(String* str, String* match);
+size_t str_count(String* str, String* match);
 
 StringList* strlist_init();
 void strlist_free(StringList* list);

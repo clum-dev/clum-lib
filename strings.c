@@ -4,6 +4,7 @@
 #include <ctype.h>
 
 #include "strings.h"
+#include "util.h"
 
 
 // Initialises a string struct (sets to given text val if given)
@@ -146,7 +147,11 @@ String* str_to_upper(String* str) {
 
 // Checks if two strings are equal
 bool str_equals(String* str1, String* str2, bool caseSensitive) {
-    
+
+    if (str1 == NULL || str2 == NULL || str1->text == NULL || str2->text == NULL) {
+        error_msg(E_ERROR, -1, "NULL string present in comparison", false);
+    }
+
     bool equals = false;
     
     if (!caseSensitive) {
@@ -167,9 +172,6 @@ bool str_equals(String* str1, String* str2, bool caseSensitive) {
 
 // Checks if two strings are equal
 bool str_equals_text(String* str1, char* str2, bool caseSensitive) {
-
-    if (str1 == NULL) printf("str1 is null\n");
-    if (str2 == NULL) printf("str2 is null\n");
 
     String* temp = str_init(str2);
     bool out = str_equals(str1, temp, caseSensitive);
@@ -194,11 +196,86 @@ void str_reverse(String* str) {
 }
 
 //
-void str_slice(String* str, int start, int end) {
+String* str_slice(String* str, int start, int end) {
 
     // TODO substring slice (where start/end index can be negative)
-    
+    if (start < 0) {
+        start = str->len + start;
+    }
+    if (end < 0) {
+        end = str->len + end;
+    }
+
+    if (start > end || end >= str->len || start >= str->len) {
+        // error_msg(E_ERROR, -1, "Invalid slice indices", false);
+        // return str_init(str->text);
+        return NULL;
+    }
+
+    char* temp = (char*)calloc(end - start + 2, sizeof(char));
+    strncpy(temp, str->text + start, end - start + 1);
+    String* out = str_init(temp);
+    free(temp);
+
+    return out;
 }
+
+//
+void str_trim(String* str, int chars) {
+
+    // Don't trim anything
+    if (chars == 0) {
+        return;
+    }
+    
+    // Trim more than length -> clear str
+    if (abs(chars) >= str->len) {
+        str_clear(str);
+    
+    } else {
+        String* temp;
+        if (chars > 0) {
+            temp = str_slice(str, 0, -(chars + 1));
+        } else if (chars < 0) {
+            temp = str_slice(str, -chars, -1);
+        }
+        str_set(str, temp->text);
+        str_free(temp);
+    }
+}
+
+//
+void str_reap(String* str, String* match) {
+    String* found = str_init("");
+    for (size_t i = 0; i < str->len;) {
+        // If out of bounds, append rest of chars
+        if (i + match->len <= str->len) {
+            String* slice = str_slice(str, i, i + match->len - 1);
+
+            // If matched, move index forward (skip substring)
+            if (str_equals(slice, match, true)) {
+                i += match->len;
+                str_free(slice);
+                continue;
+            }
+            str_free(slice);
+        }
+        str_concat_char(found, str->text[i++]);
+    }
+
+    str_set(str, found->text);
+    str_free(found);
+}
+
+//
+size_t str_count(String* str, String* match) {
+    StringList* temp = str_split(str, match->text);
+    size_t count;
+    count = (temp->size == 0) ? 0 : temp->size - 1;
+    strlist_free(temp);
+    return count;
+}
+
 
 
 /* LIST STUFF */

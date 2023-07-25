@@ -3,6 +3,7 @@
 
 #include "list.h"
 #include "util.h"
+#include "dict.h"
 
 // Initialises a listnode struct
 ListNode* listnode_init(Node* data) {
@@ -32,6 +33,10 @@ void listnode_free(ListNode* node) {
 
 // Prints a listnode struct
 void listnode_print(ListNode* node, bool showNeighbours) {
+    
+    String* type = node_get_type(node->data);
+    printf("ListNode: (type %s)\n", type->text);
+    str_free(type);
 
     if (node != NULL) {
         node_print(node->data);
@@ -224,8 +229,12 @@ int list_index(List* list, char* name) {
     ListNode* head = list->head;
     int i = 0;
     while (head != NULL) {
-        if (str_equals_text(head->data->nodedata.var->strval, name, true)) {
-            return i;        
+        if (head->data->type == NODE_VAR 
+                && str_equals_text(head->data->nodedata.var->strval, name, true)) {
+            return i;
+        } else if (head->data->type == NODE_HASHNODE 
+                && str_equals_text(head->data->nodedata.hashnode->key, name, true)) {
+            return i;
         }
         head = head->next;
         i++;
@@ -239,8 +248,13 @@ ListNode* list_find(List* list, char* name) {
 
     ListNode* head = list->head;
     while (head != NULL) {
-        if (str_equals_text(head->data->nodedata.var->strval, name, true)) {
+
+        if (head->data->type == NODE_VAR &&
+                 str_equals_text(head->data->nodedata.var->strval, name, true)) {
             return head;        
+        } else if (head->data->type == NODE_HASHNODE &&
+                str_equals_text(head->data->nodedata.hashnode->key, name, true)) {
+            return head;
         }
         head = head->next;
     }
@@ -419,7 +433,7 @@ Var* list_sum(List* input, bool strict) {
             // Add total with next value in list
             } else {
                 Var* sumval = get_sum_val(head, strict);
-                Var* add = var_sum(total, sumval);
+                Var* add = var_add(total, sumval);
                 var_set_data(total, add->strval, true);
                 var_free(add);
                 var_free(sumval);
